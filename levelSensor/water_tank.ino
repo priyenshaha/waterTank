@@ -95,7 +95,7 @@ void setup() {
 
 void loop() 
 {
-  static int cycleCount;
+ // static unsigned long cycleCount;
   server.handleClient();
   if(calibrationSwitch==HIGH)
     calibrate();
@@ -132,23 +132,26 @@ void loop()
     }
     else
     {
-      cycleCount++;
+      
       digitalWrite(D4,0); //Turn off no connection indicator #D4 is active low pin#
       
-      Serial.print("Present water surface distance: ");
+      Serial.print("\nPresent water surface distance: ");
       Serial.println(waterLevel);
-     
+      Serial.println();
       Serial.println(acqWifi.url);
       client.print(String("GET ") + acqWifi.url + " HTTP/1.1\r\n" + "Host: " + host + "\r\n" + "Connection: close\r\n\r\n");
   
       unsigned long timeout = millis();
-      while (client.available() == 0) {
-        if (millis() - timeout > 5000) {
+      while (client.available() == 0) 
+      {
+        if (millis() - timeout > 5000) 
+        {
           Serial.println(">>> Client Timeout: ");
           client.stop();
           return;
         }
       }
+     // cycleCount++;
       serverResponse="x";
       while (client.available()) {
         serverResponse = client.readStringUntil('\r');
@@ -159,7 +162,7 @@ void loop()
        String cmd = serverResponse.substring(0,index);
        Cdate = serverResponse.substring(index+1);
        Serial.print("\nAction to be performed: ");
-       Serial.println(cmd);
+       Serial.print(cmd);
        Serial.print("\nToday is: ");
        Serial.println(Cdate);
   
@@ -181,8 +184,8 @@ void loop()
       }
     }
    //----------------------------------------------------------//
-    Serial.print("\nNumber of successful cycles: ");
-    Serial.println(cycleCount);
+    //Serial.print("\nNumber of successful cycles: ");
+    //Serial.println(cycleCount);
     Serial.println("\n\nEnd of Cycle.");
   }
 
@@ -231,8 +234,6 @@ float getDistance()
   
   float dur = pulseIn(echo,HIGH);
   float dis = 345.0 * dur / 20000;
-  
-  Serial.println(dis);
   //delay(1000);
   return dis;
 }
@@ -371,4 +372,3 @@ bool saveConfig()
   json.printTo(configFile);
   return true;
 }
-
