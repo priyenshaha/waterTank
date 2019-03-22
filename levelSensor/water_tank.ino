@@ -15,7 +15,7 @@ String serverResponse, Cdate;
 ESP8266WebServer server(80);   //Web server object. Will be listening in port 80 (default for HTTP)
 
 String customerName="",tankName="";
-String wifiSsid = "ap_comp_engg", wifiPass = "computer12345", apSsid = "water_acQuisor", apPass = "acquisor123";
+String wifiSsid = "q1", wifiPass = "12345678", apSsid = "water_acQuisor", apPass = "acquisor123";
 //String customerName = "priyen@watertank", tankName = "Boys_hostel", customerWifiSsid = "q1", customerWifiPass = "12345678", APpass = "spatertech";
 
 acQuisorWiFi acqWifi(wifiSsid, wifiPass, apSsid, apPass);
@@ -59,7 +59,7 @@ void setup() {
   pinMode(calibrationSwitch, INPUT);   //pull down calibration switch 
   pinMode(relayOutput, OUTPUT);  //Solenoid output
   
-  attachInterrupt(digitalPinToInterrupt(calibrationSwitch), calibrate, RISING);
+  //attachInterrupt(digitalPinToInterrupt(calibrationSwitch), calibrate, RISING);
   
   digitalWrite(relayOutput,0);
    
@@ -92,12 +92,14 @@ void setup() {
 
   if(acqWifi.customerWifiSsid!="default"&&acqWifi.customerWifiSsid!="")
     acqWifi.Wconnect();
-  
+
 }
 
 void loop() 
 {
   server.handleClient();
+  if(calibrationSwitch==HIGH)
+    calibrate();
   while(acqWifi.customerWifiSsid=="default"||acqWifi.customerWifiSsid=="")
   {
     wait();
@@ -195,30 +197,40 @@ void wait()
 
 void calibrate()
 {
-  String x;
+ // String x;
   float tempHeight;
   calibrationFlag = 1;  // set calibration flag
   
   Serial.println("Calibrating Tank");
-  digitalWrite(2, 0);
+  digitalWrite(D2, 0);
   for (int i = 0; i < 5; i++)
   {
-    x = "Reading " + String(i) + String(": ");
-    
+ //   x = "Reading " + String(i) + String(": ");
     tempHeight = getDistance();
-    
-    Serial.print(x);
-    Serial.println(tempHeight);
-    delay(300);
-
+    delay(100);
   }
-  if(tempHeight>0)
+  if(tempHeight>=0.00)    // make > 0 after connecting sensor
   {
     tankHeight_cm = tempHeight;
-  
-    Serial.print("Final Height: ");
-    Serial.println(tankHeight_cm);
   }
+}
+
+float getDistance()
+{
+  digitalWrite(trig,LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(trig,HIGH);
+  delayMicroseconds(10);
+  
+  digitalWrite(trig,LOW);
+  
+  float dur = pulseIn(echo,HIGH);
+  float dis = 345.0 * dur / 20000;
+  
+  Serial.println(dis);
+  //delay(1000);
+  return dis;
 }
 void handleEdit()
 {
@@ -289,23 +301,6 @@ void handleSuccess()
   server.send(200, "text/html", message);
 }
 
-float getDistance()
-{
-  digitalWrite(trig,LOW);
-  delayMicroseconds(2);
-
-  digitalWrite(trig,HIGH);
-  delayMicroseconds(10);
-  
-  digitalWrite(trig,LOW);
-  
-  float dur = pulseIn(echo,HIGH);
-  float dis = 345.0 * dur / 20000;
-  
-  Serial.println(dis);
-  delay(1000);
-  return dis;
-}
 void handleRoot()
 {
   String message2 = "<center><h1> Welcome to Water acQuisor </h1><br><br><li><a href = '/edit'> Setup the Water acQuisor </a></li><br><li><a href = '/deviceStatus'> View device status and parameters</a></li><br><br> Thank you for buying Water acQuisor.<br><br><b>Contact us at 1505051@ritindia.edu </b></center>";
