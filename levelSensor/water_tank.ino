@@ -95,7 +95,7 @@ void setup() {
 
 void loop() 
 {
-  static int cycleCount++;
+  static int cycleCount;
   server.handleClient();
   if(calibrationSwitch==HIGH)
     calibrate();
