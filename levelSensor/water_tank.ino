@@ -27,8 +27,6 @@ int echo = D5;
 int trig = D6;
 float soundSpeed=345.0, waterLevel;
 
-// DistCalc ds(soundSpeed,trig,echo);
-
 float getDistance();
 void devStat();
 void virtualSwitch();
@@ -43,9 +41,9 @@ void wait();
 void setup() {
   pinMode(D4,OUTPUT);//Server connection light. On when device connected to server
   digitalWrite(D4,1);
- 
+
   Serial.begin(9600);
-  
+
   Serial.println("Mounting FS...");
 
   if (!SPIFFS.begin()) 
@@ -62,7 +60,7 @@ void setup() {
   //attachInterrupt(digitalPinToInterrupt(calibrationSwitch), calibrate, RISING);
   
   digitalWrite(relayOutput,0);
-   
+  
   Serial.print("Configuring access point...");
   WiFi.softAP(acqWifi.device_SSID.c_str(), acqWifi.device_PASS.c_str());
   IPAddress myIP = WiFi.softAPIP();
@@ -97,6 +95,7 @@ void setup() {
 
 void loop() 
 {
+  static int cycleCount++;
   server.handleClient();
   if(calibrationSwitch==HIGH)
     calibrate();
@@ -116,12 +115,12 @@ void loop()
     waterLevel = getDistance();
     acqWifi.generateURL("level", waterLevel, customerName, tankName, Cdate, btryLvl, digitalRead(relayOutput));
   }
-  
+
   if (WiFi.status() == WL_CONNECTED)
   {   
-    Serial.print("\nConnected to hotspot, IP: ");
+    Serial.print("\nThis device's IP: ");
     Serial.println(acqWifi.deviceIP);
-    Serial.print("\nConnecting to:");
+    Serial.print("\nConnecting to host @ ");
     Serial.print(host);
     Serial.println();
 
@@ -133,9 +132,10 @@ void loop()
     }
     else
     {
+      cycleCount++;
       digitalWrite(D4,0); //Turn off no connection indicator #D4 is active low pin#
       
-      Serial.print("Water level: ");
+      Serial.print("Present water surface distance: ");
       Serial.println(waterLevel);
      
       Serial.println(acqWifi.url);
@@ -158,19 +158,21 @@ void loop()
        int index = serverResponse.indexOf('_');
        String cmd = serverResponse.substring(0,index);
        Cdate = serverResponse.substring(index+1);
+       Serial.print("\nAction to be performed: ");
        Serial.println(cmd);
+       Serial.print("\nToday is: ");
        Serial.println(Cdate);
   
       if(cmd.length()==6)
       {
         digitalWrite(relayOutput, 1);
-        Serial.println("\nStart motor / valve");
+        Serial.println("\nValve opened, Water is filling up!");
       }
   
       else if(cmd.length()==5)
       {
         digitalWrite(relayOutput, 0);
-        Serial.println("\nStop motor / valve");
+        Serial.println("\nValve closed. Water tank refilled");
       }
   
       else
@@ -179,7 +181,9 @@ void loop()
       }
     }
    //----------------------------------------------------------//
-    Serial.println("\nEnd of loop \n\n");
+    Serial.print("\nNumber of successful cycles: ");
+    Serial.println(cycleCount);
+    Serial.println("\n\nEnd of Cycle.");
   }
 
   else
