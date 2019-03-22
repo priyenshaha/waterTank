@@ -1,5 +1,6 @@
 # waterTank
-*Currently under development
+*Currently under development*
+
 This project is an IoT based water tank controller and monitor on a large scale in a widespread campus.
 It aims at data collection from many tanks over WLAN / RF(absense of WLAN) and push it to server
 Water and electricity Usage estimation is performed and user can visualize the entire system through the website
