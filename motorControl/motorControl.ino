@@ -19,7 +19,7 @@ float motorPower=2.0;
 char* host = "172.22.25.3";
 const int httpPort = 80;
 
-String serverResponse, Cdate;
+String serverResponse, Cdate="2019-03-23";
 
 ESP8266WebServer server(80);
 String customerName="",motorName="";
@@ -123,7 +123,7 @@ void loop()
     Serial.println(acqWifi.deviceIP);
     Serial.print("\nConnecting to host @ ");
     Serial.print(host);
-    Serial.println();
+    Serial.println("\n");
 
     WiFiClient client;
     if (!client.connect(host, httpPort))
@@ -152,13 +152,12 @@ void loop()
       while (client.available()) {
         serverResponse = client.readStringUntil('\r');
       }
-       Serial.println(serverResponse);
-
+      
        int index = serverResponse.indexOf('_');
-       String cmd = serverResponse.substring(0,index);
+       String cmd = serverResponse.substring(1,index);
        Cdate = serverResponse.substring(index+1);
        Serial.print("\nMotor data update status: ");
-       Serial.print(cmd);
+       Serial.println(cmd);
        Serial.print("\nToday is: ");
        Serial.println(Cdate);
 
@@ -171,7 +170,7 @@ void loop()
 
   else
     Serial.print(".");
-  
+  delay(200);
 }
 void switchPressed()
 {
@@ -180,6 +179,7 @@ void switchPressed()
 
 void virtualSwitch()
 {
+  String htmlCode;
   String req = String(server.arg("stat"));
   if(req=="on")
   {
@@ -196,7 +196,7 @@ void virtualSwitch()
 
 void handleEdit()
 {
-  String htmlCode = "<center><h1>Setup your Sensor module here</h1><br><br><form method='get' action='success'><table><tr><td>Default customer name:</td><td><input type='text' name='customerName' placeholder='username_in_website' value='priyen'/></td></tr><tr><td>Motor Name:</td><td><input type='text' name='motorName' placeholder='Ex:department_name'/></td></tr><tr><td> WIFI_SSID: </td><td><input type='text' name='customerWifiSsid' placeholder='Name of hotspot to connect' value='ap_comp_engg'/></td></tr><tr><td>Password: </td><td><input type='password' name='customerWifiPass' placeholder='Password of hotspot' value='computer12345'/></td></tr></table><br><input type='submit' value='update details'/></form></center>";
+  String htmlCode = "<center><h1>Setup your Motor controller here</h1><br><br><form method='get' action='success'><table><tr><td>Default customer name:</td><td><input type='text' name='customerName' placeholder='username_in_website' value='priyen'/></td></tr><tr><td>Motor Name:</td><td><input type='text' name='motorName' placeholder='Ex:department_name'/></td></tr><tr><td> WIFI_SSID: </td><td><input type='text' name='customerWifiSsid' placeholder='Name of hotspot to connect' value='ap_comp_engg'/></td></tr><tr><td>Password: </td><td><input type='password' name='customerWifiPass' placeholder='Password of hotspot' value='computer12345'/></td></tr></table><br><input type='submit' value='update details'/></form></center>";
   server.send(200, "text/html", htmlCode);
 }
 
@@ -204,27 +204,27 @@ void devStat()
 {
   String req = String(server.arg("stat"));
   if(req=="on")
-    digitalWrite(relayOutput,1);
+    motorStatus=1;
    else if(req=="off")
-    digitalWrite(relayOutput,0);
+    motorStatus=0;
     
   String htmlCode = "<center><h2>Device / Sensor Status and Parameters</h2><table><tr><th>IP address: </th><td>";  
   htmlCode += acqWifi.deviceIP;
   htmlCode += "</td></tr><tr><th>Valve Status: </th><td>";
-  if(digitalRead(relayOutput)==1)
+  if(digitalRead(relayOutput)==0)
     htmlCode += "ON" ;
   else
     htmlCode += "OFF";
 
   htmlCode += "</td></tr><tr><th>Customer name: </th><td>";
   htmlCode += customerName;
-  htmlCode += "</td></tr><tr><th>Motor Name</th><td>";
+  htmlCode += "</td></tr><tr><th>Motor Name: </th><td>";
   htmlCode += motorName;
   htmlCode += "</td></tr><tr><th>Connected to: </th><td>";
   htmlCode += acqWifi.customerWifiSsid;
   htmlCode += "</td></tr><tr><th>Battery Level: </th><td>";
   htmlCode += btryLvl;
-  htmlCode += "</td></tr></table><br><br><form method='get' action='#'><input type='radio' name='stat' value='on'> Turn ON valve <br><br><input type='radio' name='stat' value='off' checked> Turn OFF valve <br><br><input type='submit' name='status' value='Take Action'></button></form><br><br><b>Contact us at: 1505051@ritindia.edu</b></center>";
+  htmlCode += "</td></tr></table><br><br><form method='get' action='#'><input type='radio' name='stat' value='on'> Turn ON motor <br><br><input type='radio' name='stat' value='off' checked> Turn OFF motor <br><br><input type='submit' name='status' value='Take Action'></button></form><br><br><b>Contact us at: 1505051@ritindia.edu</b></center>";
   server.send(200, "text/html", htmlCode);
 }
 
@@ -317,4 +317,3 @@ bool saveConfig()
   json.printTo(configFile);
   return true;
 }
-
