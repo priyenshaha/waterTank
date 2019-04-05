@@ -332,7 +332,7 @@ function initMap() {
 
 </script>
  <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDspQc_gy3I-y8RQ5OVkoRZX5YOnZ2cMa4&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap">
     </script>
     <script src="js/jquery.js" type="text/javascript"></script>
     <script src="js/bootstrap.min.js" type="text/javascript"></script>
